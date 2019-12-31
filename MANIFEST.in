@@ -1,0 +1,8 @@
+include README.md LICENSE
+recursive-include codeart *
+include codeart/fonts/*ttf
+recursive-exclude .git *
+prune codeart/__pycache__
+prune docs*
+prune img*
+prune OLD*
