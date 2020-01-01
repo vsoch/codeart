@@ -63,6 +63,8 @@ And then the example files for each of:
  - [empty space](https://vsoch.github.io/codeart/examples/spack/codeart.html)
 
 
+You can also browse raw images [here](https://github.com/vsoch/codeart/tree/master/docs/examples/spack/images).
+
 ### Generate RGB Vectors
 
 If you want to generate RGB vectors for a code base, you can use these
