@@ -20,7 +20,7 @@ is a small example of a Python script from spack:
 
 And here is a randomly placed grid with all python files from the spack repository:
 
-![examples/spack.png]
+![examples/spack.png](examples/spack.png)
 
 This is obviously disorganized - I'm working on a way to cluster the individual scripts, and then
 plot them, or possibly plot them to show change over time. Note that although these are python
