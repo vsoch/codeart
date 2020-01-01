@@ -1,6 +1,8 @@
 include README.md LICENSE
 recursive-include codeart *
 include codeart/fonts/*ttf
+include codeart/static/*html
+include codeart/static/js/*js
 recursive-exclude .git *
 prune codeart/__pycache__
 prune docs*

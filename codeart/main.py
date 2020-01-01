@@ -11,18 +11,18 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 """
 
 from codeart.nlp import text2sentences, sentence2words
+from codeart.utils import get_static, nearest_square_root
+from itertools import chain
 from PIL import Image
 from gensim.models import Word2Vec
 from glob import glob
+
+import json
 import math
 import os
 import pandas
-import sys
-
-from math import sqrt
-import re
-import os
 import shutil
+import re
 import sys
 import tempfile
 
@@ -149,28 +149,43 @@ class CodeBase(object):
             model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
             self.models[extension] = model
 
+    def train_all(self, extensions=None, size=3, workers=4, min_count=40):
+        """train a single word2vec model for all extensions. Useful to plot
+           code base in same color space.
+        """
+        if extensions is None:
+            extensions = list(self.codefiles.keys())
+
+        # Train model with the first extension
+        files = [self.codefiles[ext] for ext in extensions]
+        files = chain(*files)
+
+        print("Training model with extensions %s" % "|".join(extensions))
+        model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
+        self.models["all"] = model
+
     ## Vectors
 
     def get_vectors(self, extension, rescale_rgb=True):
         """Extract vectors for a model. By default, rescale to be between
            0 and 255 to fit a color space. An extension is required. 
         """
-        if extension in self.models:
-            model = self.models[extension]
-            vectors = pandas.DataFrame(columns=range(model.vector_size))
-            for word in model.wv.vocab:
-                vectors.loc[word] = self.models[extension].wv.__getitem__(word)
+        if extension not in self.models:
+            self.train(extensions=[extension])
 
-            if rescale_rgb:
-                for col in vectors.columns:
-                    minval = vectors[col].min()
-                    maxval = vectors[col].max()
-                    series = ((vectors[col] - minval) / (maxval - minval)) * 255
-                    vectors[col] = series.astype(int)
+        model = self.models[extension]
+        vectors = pandas.DataFrame(columns=range(model.vector_size))
+        for word in model.wv.vocab:
+            vectors.loc[word] = self.models[extension].wv.__getitem__(word)
 
-            return vectors
+        if rescale_rgb:
+            for col in vectors.columns:
+                minval = vectors[col].min()
+                maxval = vectors[col].max()
+                series = ((vectors[col] - minval) / (maxval - minval)) * 255
+                vectors[col] = series.astype(int)
 
-        sys.exit("%s is not a valid model, did you train() yet?" % extension)
+        return vectors
 
     def save_vectors_gradient_grid(
         self, extension, outfile, vectors=None, width=600, row_height=50, color_width=10
@@ -214,11 +229,89 @@ class CodeBase(object):
 
         image.save(outfile)
 
+    def make_gallery(self, extensions=None, bgcolor="white", combine=True):
+        """generate a small web directory with a colorful grid that
+           shows one or more languages of interest. We do this for each 
+           model that is present. If combine is True, we generate the "ALL"
+           derived model and then plot the different languages into the 
+           same color space.
+        """
+        template_file = get_static("template.html")
+        d3 = get_static("js/d3.v3.js")
+
+        if extensions is None:
+            extensions = list(self.models.keys())
+
+        # Create a temporary directory to write files to
+        tmpdir = tempfile.mkdtemp(prefix="code-art-")
+        image_dir = os.path.join(tmpdir, "images")
+        js_dir = os.path.join(tmpdir, "js")
+
+        for dirname in [image_dir, js_dir]:
+            os.mkdir(dirname)
+
+        # Copy static js file there
+        shutil.copyfile(d3, os.path.join(js_dir, os.path.basename(d3)))
+
+        # If we want to generate across languages, create model first
+        vectors = None
+        if combine is True:
+            if "all" not in self.models:
+                self.train_all(extensions)
+            vectors = self.get_vectors("all")
+
+        for ext in extensions:
+
+            if ext == "all":
+                continue
+
+            # Read in template file
+            with open(template_file, "r") as filey:
+                template = filey.read()
+
+            print("Generating web output for '%s'" % ext)
+
+            # Generate images for each extension
+            images = self.make_art(extension=ext, outdir=image_dir, vectors=vectors)
+
+            # Generate data for images
+            imagedata = []
+            inputjson = {"bgcolor": bgcolor}
+
+            width = height = nearest_square_root(len(images))
+
+            for x in range(0, width):
+                for y in range(0, height):
+                    if images:
+                        image = images.pop()
+                        imagedata.append(
+                            {
+                                "y": y,
+                                "x": x,
+                                "ext": ext,
+                                "png": os.path.join("images", os.path.basename(image)),
+                            }
+                        )
+            inputjson["image"] = imagedata
+
+            # Write in data and title
+            template = template.replace("{{DATA}}", json.dumps(inputjson, indent=4))
+            template = template.replace("{{TITLE}}", "CodeArt for %s" % ext)
+
+            # Generate page to render
+            output_html = os.path.join(tmpdir, "codeart%s.html" % ext)
+            with open(output_html, "w") as filey:
+                filey.writelines(template)
+
+        print("Finished web files are in %s" % tmpdir)
+        return tmpdir
+
     def make_art(self, extension, outdir, vectors=None, files=None):
         """based on an extension, create a set of vectors in the RGB space,
            and then write images for them to some output directory
         """
-        if extension in self.models:
+        images = []
+        if extension in self.codefiles:
 
             # We can take a custom list of files, or the iterator
             files = files or self.codefiles.get(extension, [])
@@ -264,11 +357,12 @@ class CodeBase(object):
 
                 # Save output file
                 outfile = "%s.png" % os.path.join(
-                    outdir, filename.replace(os.path.sep, "-")
+                    outdir, filename.replace(os.path.sep, "-").strip("-")
                 )
                 image.save(outfile)
+                images.append(outfile)
 
-        print("%s is not a valid model, did you train() yet?" % extension)
+        return images
 
     def add_file(self, filename, max_bytes=100000):
         """Based on a filename, add the filename to the appropriate code files

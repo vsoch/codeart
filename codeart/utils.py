@@ -29,6 +29,15 @@ def download_nltk():
     return os.path.join(home, "nltk_data")
 
 
+def nearest_square_root(number):
+    """find the nearest square to a number
+    """
+    answer = 0
+    while (answer + 1) ** 2 < number:
+        answer += 1
+    return int(answer)
+
+
 def get_font(filename="OpenSans-Regular.ttf"):
     """Return the default font for writing on the images. A user could
        add additional fonts to this folder, if desired.
@@ -37,6 +46,15 @@ def get_font(filename="OpenSans-Regular.ttf"):
     if not os.path.exists(font_file):
         sys.exit("Font %s does not exist." % font_file)
     return font_file
+
+
+def get_static(filename):
+    """return a file in static, if it exists
+    """
+    filename = os.path.join(here, "static", filename)
+    if not os.path.exists(filename):
+        sys.exit("Static file %s does not exist." % filename)
+    return filename
 
 
 def check_restricted(value, min_range, max_range):

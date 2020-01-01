@@ -38,8 +38,7 @@ $(document).ready(function() {
         .enter()
         .append("svg:a")
             .attr("xlink:href",function(d){
-                 var image = d.png
-                 return "{{FOLDER}}" + image
+                 return d.png
              })
              .attr("target","_blank")
         .append("svg:image")
@@ -49,7 +48,7 @@ $(document).ready(function() {
             .attr("width", 50)
             .attr("height", 50)
         .on('mouseover', function(d){
-            $("#text").html("CodeArt Generated with:<br>extension: " + d.ext)
+            $("#text").html("CodeArt Generated with:<br>extension: " + d.ext + "<br> https://github.com/vsoch/codeart")
             console.log(d);
         })
 });
