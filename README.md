@@ -58,7 +58,7 @@ Finished web files are in /tmp/code-art-xp73v5ji
 
 And then the example files for each of:
 
- - [python](https://vsoch.github.io/codeart/examples/spack/codeart.python.html)
+ - [python](https://vsoch.github.io/codeart/examples/spack/codeart.py.html)
  - [patch](https://vsoch.github.io/codeart/examples/spack/codeart.patch.html)
  - [empty space](https://vsoch.github.io/codeart/examples/spack/codeart.html)
 
