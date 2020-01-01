@@ -10,11 +10,11 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 
 """
 
-from codeart.nlp import text2sentences, sentence2words, find_phrases
+from codeart.nlp import text2sentences, sentence2words
 from PIL import Image
 from gensim.models import Word2Vec
 from glob import glob
-import numpy
+import math
 import os
 import pandas
 import sys
@@ -118,9 +118,19 @@ class CodeBase(object):
            libraries (e.g., gitpython)  but just execute the command to the system.
         """
         tmpdir = next(tempfile._get_candidate_names())
-        tmpdir = os.path.join(tempfile.tempdir, tmpdir)
+        tmpdir = os.path.join(tempfile.gettempdir(), tmpdir)
         os.system("git clone -b %s %s %s" % (branch, repo, tmpdir))
         return self.add_folder(tmpdir)
+
+    def threshold_files(self, thresh=100):
+        """Iterate over codefiles, and return a dict subset of 
+           only those greater than threshold
+        """
+        passing = dict()
+        for ext, codefiles in self.codefiles.items():
+            if len(codefiles.files) >= thresh:
+                passing[ext] = codefiles
+        return passing
 
     def train(self, extensions=None, size=3, workers=4, min_count=40, thresh=100):
         """train word2vec models for given code files. If None defined, train
@@ -138,6 +148,8 @@ class CodeBase(object):
             print("Training model for extension %s" % extension)
             model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
             self.models[extension] = model
+
+    ## Vectors
 
     def get_vectors(self, extension, rescale_rgb=True):
         """Extract vectors for a model. By default, rescale to be between
@@ -158,7 +170,49 @@ class CodeBase(object):
 
             return vectors
 
-        print("%s is not a valid model, did you train() yet?" % extension)
+        sys.exit("%s is not a valid model, did you train() yet?" % extension)
+
+    def save_vectors_gradient_grid(
+        self, extension, outfile, vectors=None, width=600, row_height=50, color_width=10
+    ):
+        """Given a vectors data frame (or just an extension), save a vectors
+           gradient grid to an output image. We draw the word (text) on
+           each section. This function produces a mapping of a codebase to 
+           colors.
+        """
+        if vectors is None:
+            vectors = self.get_vectors(extension)
+
+        # Sort by all three columns
+        vectors = vectors.sort_values(by=[0, 1, 2])
+
+        # Assume each color needs a width of 5 pixels, how many rows do we need?
+        rows = math.ceil(vectors.shape[0] * color_width / width)
+        height = row_height * rows
+
+        # Create a new image
+        image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
+        pixels = image.load()
+        colors_per_row = math.floor(vectors.shape[0] / rows)
+
+        # Print each color to its row
+        x = 0
+        color_index = 0
+        for row in range(rows):
+            y = 0
+            xcoords = range(x, x + row_height)
+            names = vectors.index[color_index : color_index + colors_per_row]
+            for color in names:
+                if color:
+                    rgb = vectors.loc[color].tolist()
+                    for xcoord in xcoords:
+                        for ycoord in range(y, y + color_width):
+                            pixels[ycoord, xcoord] = (*rgb, 255)
+                y += color_width
+            x += row_height
+            color_index += colors_per_row
+
+        image.save(outfile)
 
     def make_art(self, extension, outdir, vectors=None, files=None):
         """based on an extension, create a set of vectors in the RGB space,
@@ -187,6 +241,9 @@ class CodeBase(object):
                 width = max([len(line) for line in lines])
                 height = len(lines)
 
+                if width == 0 or height == 0:
+                    continue
+
                 # Create image of this size
                 image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
                 pixels = image.load()
@@ -202,7 +259,7 @@ class CodeBase(object):
 
                         rgb = vectors.loc[word].tolist()
                         for match in re.finditer(word, padded):
-                            for y in range(match.start(), match.end() + 1):
+                            for y in range(match.start(), match.end()):
                                 pixels[y, l] = (*rgb, 255)
 
                 # Save output file
@@ -213,17 +270,19 @@ class CodeBase(object):
 
         print("%s is not a valid model, did you train() yet?" % extension)
 
-    def add_file(self, filename):
+    def add_file(self, filename, max_bytes=100000):
         """Based on a filename, add the filename to the appropriate code files
            instance depending on the extension. Ignore files in list of skip.
         """
+        size = os.path.getsize(filename)
         name, ext = os.path.splitext(os.path.basename(filename))
 
         # Generally skip image and extension files
         skip_ext = [".gz", ".exe", ".sif", "simg", "img", "png", "gif", "jpg", "jpeg"]
         ext = ext.lower()
 
-        if ext in skip_ext:
+        # Skip based on extension, or file is too big
+        if ext in skip_ext or size >= max_bytes:
             return
 
         # If extensions are provided, ensure parsed is in list

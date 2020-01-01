@@ -27,7 +27,7 @@ INSTALL_REQUIRES = (
     ("nltk", {"min_version": "3.4"}),
     ("gensim", {"min_version": "3.8.1"}),
     ("numpy", {"min_version": "1.16.2"}),
-    ("pandas", {"min_version": "pandas"}),
+    ("pandas", {"min_version": "0.24.2"}),
 )
 
 TESTS_REQUIRES = (("pytest", {"min_version": "4.6.2"}),)
