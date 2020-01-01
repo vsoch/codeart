@@ -159,7 +159,6 @@ code.make_art(extension=".py", outdir='images', vectors=vectors)
 I haven't developed this in detail, but you can also generate a grid of colors
 for a given image (under development).
 
-```python
 
 Do you have a question? Or want to suggest a feature to make it better?
 Please [open an issue!](https://www.github.com/vsoch/codeart)
