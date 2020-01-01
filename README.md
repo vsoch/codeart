@@ -6,9 +6,27 @@
 I wanted a way to culminate the last decade of programming that I've done, and realized
 it would be much more fun to create a tool that others could use as well. Specifically, I want to be able to:
 
- 1. Have a class that parses over repos on my local machine, and organizes files based on extension. I also don't want to take files that are older than 10 years.
- 2. Builds a word2vec model, one per extension, the idea being that each language has it's own model. The word2vec model should have three dimensions so that we can map it to an RGB colorspace. This will mean that the embeddings for each character, along with being unique for the language, will also have a unique color. 
+ 1. Have a class that parses over repos on my local machine, and organizes files based on extension..
+ 2. Builds a word2vec model, one per extension, the idea being that each language has it's own model. The word2vec model should have three dimensions so that we can map it to an RGB colorspace. This will mean that the embeddings for each character, along with being unique for the language, will also have a unique color. We should also be able to build one model across extensions, and map each extension to it.
  3. At the end, I should be able to visualize any particular script (or some other graphic) using these embeddings. I'd like to add in some variable / dimension to represent age / date too.
+
+## Progress
+
+What I have so far is an ability to do the above, and then to produce a tiny image for
+each code file, where the words are colored by their word2vec (3 dimensional, RGB) embedding. Here
+is a small example of a Python script from spack:
+
+![spack-repos-builtin-packages-hsakmt-package.py.png](https://vsoch.github.io/codeart/examples/spack/images/tmp-mpcq8hau-var-spack-repos-builtin-packages-hsakmt-package.py.png)
+
+And here is a randomly placed grid with all python files from the spack repository:
+
+![examples/spack.png]
+
+This is obviously disorganized - I'm working on a way to cluster the individual scripts, and then
+plot them, or possibly plot them to show change over time. Note that although these are python
+scripts, the embeddings are generated relative to files without an extension (e.g., LICENSE files) 
+and .patch files. I suspect as the codebase gets larger (more languages) the color space will
+get more interesting.
 
 ## Usage
 
