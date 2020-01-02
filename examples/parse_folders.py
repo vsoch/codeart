@@ -17,23 +17,23 @@ code.codefiles
 code.threshold_files(100)
 
 # Select a subset of extensions to build one model
-extensions=[
- '.py',
- '.txt',
- '.sh',
- '',
- '.md',
- '.r',
- '.tab',
- '.out',
- '.js',
- '.html',
- '.css',
- '.yml',
- '.svg',
- '.rst',
- '.in',
- '.err'
+extensions = [
+    ".py",
+    ".txt",
+    ".sh",
+    "",
+    ".md",
+    ".r",
+    ".tab",
+    ".out",
+    ".js",
+    ".html",
+    ".css",
+    ".yml",
+    ".svg",
+    ".rst",
+    ".in",
+    ".err",
 ]
 
 # train single model for some subset of extensions (could also choose thresh=100)
@@ -41,7 +41,7 @@ code.train_all(extensions)
 
 # extract vectors for an extension (pandas dataframe, words in rows)
 # normalized to RGB color space
-vectors = code.get_vectors('all')
+vectors = code.get_vectors("all")
 
 # Save vectors gradients to tsv
 vectors.to_csv("vectors-gradients.tsv", sep="\t")
@@ -50,4 +50,4 @@ vectors.to_csv("vectors-gradients.tsv", sep="\t")
 gallery = code.make_gallery(extensions=extensions, vectors=vectors)
 
 # Or generate a vector gradient
-code.save_vectors_gradient_grid('all', 'colors-gradient.png') 
+code.save_vectors_gradient_grid("all", "colors-gradient.png")

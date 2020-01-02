@@ -31,14 +31,14 @@ code.threshold_files(thresh=100)
 # '.patch': [codeart-files:531]}
 
 # Let's train a word2vec model, size 3 for RGB space, for each of those extensions
-code.train(extensions=['.py', '', '.patch'])
+code.train(extensions=[".py", "", ".patch"])
 
 # We can also train a single model for those extensions
-code.train_all(extensions=['.py', '', '.patch'])
+code.train_all(extensions=[".py", "", ".patch"])
 
 # We now have a model for each extension (and all)
 code.models
-code.models['all']
+code.models["all"]
 
 # First let's just generate vectors (RGB values across words in each model) for each language
 # This is a pandas data frame you can easily save to csv, pickle, etc.
@@ -54,7 +54,12 @@ from mpl_toolkits.mplot3d import Axes3D
 
 fig = plt.figure()
 ax = Axes3D(fig)
-ax.scatter(vectors[0].tolist(), vectors[1].tolist(), vectors[2].tolist(), c=vectors.to_numpy()/255)
+ax.scatter(
+    vectors[0].tolist(),
+    vectors[1].tolist(),
+    vectors[2].tolist(),
+    c=vectors.to_numpy() / 255,
+)
 
 for row in vectors.iterrows():
     ax.text(row[1][0], row[1][1], row[1][2], row[0])
@@ -67,11 +72,11 @@ plt.savefig("spack-python.png")
 ###
 
 # Generate images for all files
-if not os.path.exists('images'):
-    os.mkdir('images')
+if not os.path.exists("images"):
+    os.mkdir("images")
 
 # Create folder of code images (if you want to work with them directly)
-code.make_art(extension=".py", outdir='images', vectors=vectors)
+code.make_art(extension=".py", outdir="images", vectors=vectors)
 
 
 ###
@@ -79,4 +84,4 @@ code.make_art(extension=".py", outdir='images', vectors=vectors)
 ###
 
 # The gallery example here will plot each language, using the same model
-gallery = code.make_gallery(extensions=['', '.py', '.patch'])
+gallery = code.make_gallery(extensions=["", ".py", ".patch"])

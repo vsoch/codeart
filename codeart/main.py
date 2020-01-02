@@ -166,6 +166,49 @@ class CodeBase(object):
 
     ## Vectors
 
+    def get_color_percentages(self, extensions, vectors):
+        """Given a data frame of vectors and an extension, parse a code base
+           and determine the relative prevalence of a term. For example,
+           if we find 200 instances of a term in the vectors lookup,
+           we might then parse individual extensions and find that it appears
+           10 times in Python. The overall score for Python and that term
+           would be 10/200 or 1/20 or 0.05, and this would correspond to an
+           opacity value returned.
+        """
+        totals = {word: 0 for word in vectors.index}
+        counts = {ext: {word: 0 for word in vectors.index} for ext in extensions}
+
+        # First derive total counts for each term
+        print("Deriving counts... please wait!")
+        for ext in extensions:
+            files = self.codefiles[ext]
+            for words in files:
+                for word in words:
+                    if word in totals:
+                        totals[word] += 1
+                        counts[ext][word] += 1
+
+        # Put all into data frame
+        columns = ["%s-counts" % ext for ext in extensions] + [
+            "%s-percent" % ext for ext in extensions
+        ]
+        df = pandas.DataFrame(columns=["totals"] + columns)
+        df["totals"] = pandas.DataFrame.from_dict(totals, orient="index")[0]
+
+        print("Generating data frame...")
+        for ext in extensions:
+            print("Updating %s" % ext)
+            df.loc[:, "%s-counts" % ext] = 0
+
+            for word in totals:
+                df.loc[word, "%s-counts" % ext] = counts[ext][word]
+                if totals[word] != 0:
+                    df.loc[word, "%s-percent" % ext] = counts[ext][word] / totals[word]
+                else:
+                    df.loc[word, "%s-percent" % ext] = 0
+
+        return df
+
     def get_vectors(self, extension, rescale_rgb=True):
         """Extract vectors for a model. By default, rescale to be between
            0 and 255 to fit a color space. An extension is required. 
