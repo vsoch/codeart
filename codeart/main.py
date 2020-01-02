@@ -426,6 +426,10 @@ class CodeBase(object):
         """Based on a filename, add the filename to the appropriate code files
            instance depending on the extension. Ignore files in list of skip.
         """
+        # Must be readable / accessible
+        if not os.access(filename, os.R_OK):
+            return
+
         size = os.path.getsize(filename)
         name, ext = os.path.splitext(os.path.basename(filename))
 
