@@ -7,5 +7,6 @@ and **Merged pull requests**.
 The versions coincide with releases on pypi.
 
 ## [0.0.x](https://github.com/vsoch/codeart/tree/master) (0.0.x)
+ - finished basic client and dummy functions (0.0.11)
  - dummy release with base functions without client (0.0.1)
 

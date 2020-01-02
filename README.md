@@ -177,8 +177,23 @@ code.make_art(extension=".py", outdir='images', vectors=vectors)
 ### Example 4: Generate a Grid
 
 I haven't developed this in detail, but you can also generate a grid of colors
-for a given image (under development).
+for a given image. The idea here would be to have a grid that
+can be used as a legend. Here we again load in the spack code base,
+and generate a lookup for the ".py" (python) extension.
 
+```python
+from codeart.main import CodeBase
+code = CodeBase()                      
+code.add_repo("https://github.com/spack/spack")
+code.save_vectors_gradient_grid('.py', 'spack-image-gradient.png') 
+```
+
+An example gradient image is the following:
+
+![examples/spack-image-gradient.png](examples/spack-image-gradient.png)
+
+You can of course adjust the dimensions, the row height, and the column width
+and font size depending on your needs or matrix size.
 
 Do you have a question? Or want to suggest a feature to make it better?
 Please [open an issue!](https://www.github.com/vsoch/codeart)

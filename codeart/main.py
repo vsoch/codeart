@@ -11,9 +11,9 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 """
 
 from codeart.nlp import text2sentences, sentence2words
-from codeart.utils import get_static, nearest_square_root
+from codeart.utils import get_static, nearest_square_root, get_font
 from itertools import chain
-from PIL import Image
+from PIL import Image, ImageFont, ImageDraw
 from gensim.models import Word2Vec
 from glob import glob
 
@@ -188,7 +188,14 @@ class CodeBase(object):
         return vectors
 
     def save_vectors_gradient_grid(
-        self, extension, outfile, vectors=None, width=600, row_height=50, color_width=10
+        self,
+        extension,
+        outfile,
+        vectors=None,
+        width=2000,
+        row_height=10,
+        color_width=50,
+        font_size=6,
     ):
         """Given a vectors data frame (or just an extension), save a vectors
            gradient grid to an output image. We draw the word (text) on
@@ -210,6 +217,10 @@ class CodeBase(object):
         pixels = image.load()
         colors_per_row = math.floor(vectors.shape[0] / rows)
 
+        # We will separately draw text (Open Sans Font is default)
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype(get_font(), font_size)
+
         # Print each color to its row
         x = 0
         color_index = 0
@@ -223,6 +234,10 @@ class CodeBase(object):
                     for xcoord in xcoords:
                         for ycoord in range(y, y + color_width):
                             pixels[ycoord, xcoord] = (*rgb, 255)
+
+                    draw.text(
+                        (y + 2, xcoords[0] + 2), color, (255, 255, 255), font=font
+                    )
                 y += color_width
             x += row_height
             color_index += colors_per_row
