@@ -20,13 +20,11 @@ is a small example of a Python script from spack:
 
 And here is a randomly placed grid with all python files from the spack repository:
 
-![examples/spack.png](examples/spack.png)
+![examples/img/spack.png](examples/img/spack.png)
 
-This is obviously disorganized - I'm working on a way to cluster the individual scripts, and then
-plot them, or possibly plot them to show change over time. Note that although these are python
-scripts, the embeddings are generated relative to files without an extension (e.g., LICENSE files) 
-and .patch files. I suspect as the codebase gets larger (more languages) the color space will
-get more interesting.
+And see [Example 5: Generate a Color Map](#example-5-generate-a-color-map) for a more organized rendering of just the color space.
+What I'm working towards is being able to derive and organize the above images as well,
+possibly based on an average color or similar.
 
 ## Usage
 
@@ -82,6 +80,7 @@ And then the example files for each of:
 
 
 You can also browse raw images [here](https://github.com/vsoch/codeart/tree/master/docs/examples/spack/images).
+
 
 ### Generate RGB Vectors
 
@@ -156,7 +155,7 @@ for row in vectors.iterrows():
     ax.text(row[1][0], row[1][1], row[1][2], row[0])
 
 plt.show()
-plt.savefig("spack-python.png")
+plt.savefig("img/spack-python.png")
 ```
 
 ### Example 3: Generate Code Images
@@ -174,7 +173,7 @@ if not os.path.exists('images'):
 code.make_art(extension=".py", outdir='images', vectors=vectors)
 ```
 
-### Example 4: Generate a Grid
+### Example 4: Generate a Color Lookup Grid
 
 I haven't developed this in detail, but you can also generate a grid of colors
 for a given image. The idea here would be to have a grid that
@@ -190,11 +189,11 @@ code.save_vectors_gradient_grid('.py', 'spack-image-gradient.png')
 
 An example gradient image is the following:
 
-![examples/spack-image-gradient.png](examples/spack-image-gradient.png)
+![examples/img/spack-image-gradient.png](examples/img/spack-image-gradient.png)
 
 And a much larger one (you'll need to click and zoom in):
 
-![examples/colors-gradient.png](examples/colors-gradient.png)
+![examples/img/colors-gradient.png](examples/img/colors-gradient.png)
 
 which is generated from [this data](examples/vectors-gradients.tsv) that I created by
 building a model across all the Python code on my computer (note there are many different
@@ -202,6 +201,29 @@ file extensions in the model beyond Python!).
 
 You can of course adjust the dimensions, the row height, and the column width
 and font size depending on your needs or matrix size.
+
+### Example 5: Generate a Color Map
+
+You can [follow this notebook](https://github.com/vsoch/codeart/blob/master/examples/derive_colormap.ipynb)
+to see how you might generate a colormap. For example, here is an entire colormap for my Python (and associated files)
+code base, without altering opacity, but just plotting the colors (these are the colors
+that align with the color lookup grid above).
+
+![examples/img/colormap-3d.png](examples/img/colormap-3d.png)
+
+And if we do dimensionality reduction, we can plot this in 2d:
+
+![examples/img/colormap-2d.png](examples/img/colormap-2d.png)
+
+And finally, we can assess counts for any particular extension across
+the codebase to derive images that use transparency to show the prevalence of any given term.
+Here is for .yml and .rst (restructured syntax) files.
+
+![examples/img/colormap-yaml.png](examples/img/colormap-yaml.png)
+
+Next I'd like to derive an interactive visualization to explore these results,
+and then do an analysis across my entire code base that (instead of using file extensions)
+uses time (I haven't implemented this yet).
 
 Do you have a question? Or want to suggest a feature to make it better?
 Please [open an issue!](https://www.github.com/vsoch/codeart)
