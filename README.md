@@ -192,6 +192,14 @@ An example gradient image is the following:
 
 ![examples/spack-image-gradient.png](examples/spack-image-gradient.png)
 
+And a much larger one (you'll need to click and zoom in):
+
+![examples/colors-gradient.png](examples/colors-gradient.png)
+
+which is generated from [this data](examples/vectors-gradients.tsv) that I created by
+building a model across all the Python code on my computer (note there are many different
+file extensions in the model beyond Python!).
+
 You can of course adjust the dimensions, the row height, and the column width
 and font size depending on your needs or matrix size.
 

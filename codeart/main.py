@@ -192,10 +192,10 @@ class CodeBase(object):
         extension,
         outfile,
         vectors=None,
-        width=2000,
-        row_height=10,
-        color_width=50,
-        font_size=6,
+        width=3000,
+        row_height=20,
+        color_width=80,
+        font_size=10,
     ):
         """Given a vectors data frame (or just an extension), save a vectors
            gradient grid to an output image. We draw the word (text) on
@@ -387,11 +387,25 @@ class CodeBase(object):
         name, ext = os.path.splitext(os.path.basename(filename))
 
         # Generally skip image and extension files
-        skip_ext = [".gz", ".exe", ".sif", "simg", "img", "png", "gif", "jpg", "jpeg"]
+        skip_ext = [
+            ".exe",
+            ".gif",
+            ".gz",
+            ".img",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".pdf",
+            ".pkl",
+            ".pyc",
+            ".sif",
+            ".simg",
+            ".zip",
+        ]
         ext = ext.lower()
 
-        # Skip based on extension, or file is too big
-        if ext in skip_ext or size >= max_bytes:
+        # Skip based on extension, temporary, or file is too big
+        if ext in skip_ext or size >= max_bytes or ext.endswith("~"):
             return
 
         # If extensions are provided, ensure parsed is in list
@@ -421,12 +435,15 @@ class CodeFiles(object):
         """
         # Iterating over a list of file paths
         for input_file in self.files:
-            for text in open(input_file, "r").readlines():
-                for line in text2sentences(text):
-                    words = sentence2words(line)
-                    if len(words) < 3:
-                        continue
-                    yield words
+            try:
+                for text in open(input_file, "r").readlines():
+                    for line in text2sentences(text):
+                        words = sentence2words(line)
+                        if len(words) < 3:
+                            continue
+                        yield words
+            except UnicodeDecodeError:
+                pass
 
     def __str__(self):
         return "[codeart-files:%s]" % len(self.files)
