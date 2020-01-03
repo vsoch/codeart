@@ -221,6 +221,41 @@ Here is for .yml and .rst (restructured syntax) files.
 
 ![examples/img/colormap-yaml.png](examples/img/colormap-yaml.png)
 
+### Example 6: Parse Folders by a Custom Function
+
+You might want to organize groups in some logical way that goes beyond an extension,
+or just using all files. For this reason, each of the functions add_folder, and add_repo
+can be given a custom "func" that will return a group name based on a file.
+For example, from [utils](codeart/utils.py) we can import a function that will
+group files by year:
+
+```python
+def group_by_year_created(filename):
+    """Given a filename, return the year it was created.
+       This function is called after testing the file for read access. 
+    """
+    stat = os.stat(filename)
+    return datetime.fromtimestamp(stat.st_ctime).year
+```
+
+And then when adding a folder or repo, we might do:
+
+```python
+code.add_folder(folder, func=group_by_year_created)
+code.add_repo(folder, func=group_by_year_created)
+```
+
+You can also just provide a string or group directly (takes preference over func):
+
+```python
+code.add_repo(repo, group="2017")
+```
+
+The function you provide should take the file name as the main argument.
+A more complex example (parsing GitHub repos by creation date using the GitHub
+API) is provided at [examples/parse_by_year/parse_by_year.py](examples/parse_by_year/parse_by_year.py).
+
+
 Next I'd like to derive an interactive visualization to explore these results,
 and then do an analysis across my entire code base that (instead of using file extensions)
 uses time (I haven't implemented this yet).

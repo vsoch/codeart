@@ -10,10 +10,86 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 
 """
 
+from datetime import datetime
+import json
 import os
 import sys
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+## Groups
+# Helper Functions to be passed to add_folder, add_repo to determine
+# grouping for a file
+
+
+def group_by_year_created(filename):
+    """Given a filename, return the year it was created.
+       This function is called after testing the file for read access. 
+    """
+    stat = os.stat(filename)
+    return datetime.fromtimestamp(stat.st_ctime).year
+
+
+## Find
+# More helper functions to return metadata from folders
+
+
+def recursive_find(folder, return_files=True):
+    """Iterate through files and directories recursively
+    """
+    for dirpath, dirnames, filenames in os.walk(folder):
+        for filename in filenames:
+            if return_files:
+                yield os.sep.join([dirpath, filename])
+            else:
+                yield dirpath
+
+
+def recursive_find_repos(folder, return_folders=False):
+    """Look through folders searching for .git files, if we find one,
+       read to extract origin names.
+    """
+    # Regular expression for repo
+    regexp = "((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?"
+    repos = []
+
+    if return_folders:
+        repos = dict()
+
+    for filename in recursive_find(folder):
+        if os.sep.join([".git", "config"]) in filename:
+
+            # Must be readable / accessible
+            if not os.access(filename, os.R_OK):
+                continue
+
+            with open(filename, "r") as filey:
+                lines = filey.readlines()
+
+            # Find the most common (origin) and get the url on the next line
+            while lines:
+                line = lines.pop()
+                if "url" in line:
+                    match = re.search(regexp, line)
+                    if match:
+
+                        # Grab the repository
+                        repo = match.group().replace(".git", "")
+                        if "github" in repo:
+
+                            # Get rid of any ssl config
+                            repo = repo.split(":")[-1]
+                            reponame = "https://github.com/%s" % "/".join(
+                                repo.split("/")[-2:]
+                            )
+                            if return_folders:
+                                repos[reponame] = filename.replace(
+                                    os.path.sep.join([".git", "config"]), ""
+                                ).rstrip("/")
+                            else:
+                                repos.append(reponame)
+
+    return repos
 
 
 def download_nltk():
@@ -67,3 +143,50 @@ def check_restricted(value, min_range, max_range):
 
     if value < min_range or value > max_range:
         sys.exit("ca and cb must be in range (-1, 1)")
+
+
+# Files
+
+
+def write_json(json_obj, filename, mode="w", print_pretty=True):
+    """write_json will (optionally,pretty print) a json object to file
+
+       Parameters
+       ==========
+       json_obj: the dict to print to json
+       filename: the output file to write to
+       pretty_print: if True, will use nicer formatting
+    """
+    with open(filename, mode) as filey:
+        if print_pretty:
+            filey.writelines(print_json(json_obj))
+        else:
+            filey.writelines(json.dumps(json_obj))
+    return filename
+
+
+def print_json(json_obj):
+    """ just dump the json in a "pretty print" format
+    """
+    return json.dumps(json_obj, indent=4, separators=(",", ": "))
+
+
+def read_file(filename, mode="r", readlines=True):
+    """write_file will open a file, "filename" and write content, "content"
+       and properly close the file
+    """
+    with open(filename, mode) as filey:
+        if readlines is True:
+            content = filey.readlines()
+        else:
+            content = filey.read()
+    return content
+
+
+def read_json(filename, mode="r"):
+    """read_json reads in a json file and returns
+       the data structure as dict.
+    """
+    with open(filename, mode) as filey:
+        data = json.load(filey)
+    return data
