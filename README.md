@@ -248,13 +248,13 @@ that align with the color lookup grid above).
 
 And if we do dimensionality reduction, we can plot this in 2d:
 
-![colormap-2d.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-2d.png)
+![colormap-2d.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/parse_by_year/colormap-2d.png)
 
 And finally, we can assess counts for any particular extension across
 the codebase to derive images that use transparency to show the prevalence of any given term.
 Here is for .yml and .rst (restructured syntax) files.
 
-![colormap-yaml.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-yaml.png)
+![colormap-yaml.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-yml.png)
 
 ### Example 6: Parse Folders by a Custom Function
 
