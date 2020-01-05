@@ -256,6 +256,14 @@ Here is for .yml and .rst (restructured syntax) files.
 
 ![colormap-yaml.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-yml.png)
 
+We can also generate an animation to loop through each language.
+
+![colormap-groups.gif](https://raw.githubusercontent.com/vsoch/codeart-examples/master/parse_by_year/colormap-groups.gif)
+
+But note that this data would benefit greatly from interactive visualization,
+akin to the [interactive colormap example](#generate-interactive-colormap)
+example mentioned previously.
+
 ### Example 6: Parse Folders by a Custom Function
 
 You might want to organize groups in some logical way that goes beyond an extension,
