@@ -37,7 +37,7 @@ class CodeBase(object):
     def __init__(self, groups=None):
         self.codefiles = dict()
         self.models = dict()
-        self.extensions = extensions
+        self.extensions = groups
 
     def __str__(self):
         return "[codeart-base]"
@@ -186,6 +186,16 @@ class CodeBase(object):
         model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
         self.models["all"] = model
 
+    def get_combined_iters(self, groups=None):
+        """Return a chained object with some subset of code files.
+        """
+        if groups is None:
+            groups = list(self.codefiles.keys())
+
+        # Train model with the first extension
+        files = [self.codefiles[g] for g in groups]
+        return chain(*files)
+
     ## Vectors
 
     def get_color_percentages(self, groups, vectors):
@@ -252,63 +262,6 @@ class CodeBase(object):
                 vectors[col] = series.astype(int)
 
         return vectors
-
-    def save_vectors_gradient_grid(
-        self,
-        group,
-        outfile,
-        vectors=None,
-        width=3000,
-        row_height=20,
-        color_width=80,
-        font_size=10,
-    ):
-        """Given a vectors data frame (or just a group/extension), save a vectors
-           gradient grid to an output image. We draw the word (text) on
-           each section. This function produces a mapping of a codebase to 
-           colors.
-        """
-        if vectors is None:
-            vectors = self.get_vectors(group)
-
-        # Sort by all three columns
-        vectors = vectors.sort_values(by=[0, 1, 2])
-
-        # Assume each color needs a width of 5 pixels, how many rows do we need?
-        rows = math.ceil(vectors.shape[0] * color_width / width)
-        height = row_height * rows
-
-        # Create a new image
-        image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
-        pixels = image.load()
-        colors_per_row = math.floor(vectors.shape[0] / rows)
-
-        # We will separately draw text (Open Sans Font is default)
-        draw = ImageDraw.Draw(image)
-        font = ImageFont.truetype(get_font(), font_size)
-
-        # Print each color to its row
-        x = 0
-        color_index = 0
-        for row in range(rows):
-            y = 0
-            xcoords = range(x, x + row_height)
-            names = vectors.index[color_index : color_index + colors_per_row]
-            for color in names:
-                if color:
-                    rgb = vectors.loc[color].tolist()
-                    for xcoord in xcoords:
-                        for ycoord in range(y, y + color_width):
-                            pixels[ycoord, xcoord] = (*rgb, 255)
-
-                    draw.text(
-                        (y + 2, xcoords[0] + 2), color, (255, 255, 255), font=font
-                    )
-                y += color_width
-            x += row_height
-            color_index += colors_per_row
-
-        image.save(outfile)
 
     def make_gallery(self, groups=None, bgcolor="white", combine=True):
         """generate a small web directory with a colorful grid that

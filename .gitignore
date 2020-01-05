@@ -1,3 +1,4 @@
+examples/codeart-examples
 .ipynb_checkpoints
 __pycache__/
 *.py[cod]

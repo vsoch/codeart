@@ -43,9 +43,11 @@ $ git clone https://github.com/vsoch/codeart
 $ python setup.py install
 ```
 
-The following examples are also provided in the [examples](examples) folder.
+The following examples are also provided in the [codeart examples](https://github.com/vsoch/codeart-examples) repository.
 
-### Generate a Gallery
+### Example 1: Galleries and Interactive Visualizations
+
+#### Generate an Abstract Gallery
 
 You can generate a web gallery for a root folder (including all files beneath it) or
 a repository:
@@ -64,8 +66,8 @@ code.add_repo("https://github.com/spack/spack")
 code.threshold_files(100)
 
 # Generate a web report (one page per language above this threshold)
-gallery = code.make_gallery(extensions=['', '.py', '.patch']) 
-Training model with extensions |.py|.patch
+gallery = code.make_gallery(groups=['', '.py', '.patch']) 
+Training model with groups |.py|.patch
 Generating web output for ''
 Generating web output for '.py'
 Generating web output for '.patch'
@@ -74,13 +76,11 @@ Finished web files are in /tmp/code-art-xp73v5ji
 
 And then the example files for each of:
 
- - [python](https://vsoch.github.io/codeart/examples/spack/codeart.py.html)
- - [patch](https://vsoch.github.io/codeart/examples/spack/codeart.patch.html)
- - [empty space](https://vsoch.github.io/codeart/examples/spack/codeart.html)
+ - [python](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.py.html)
+ - [patch](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.patch.html)
+ - [empty space](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.html)
 
-
-You can also browse raw images [here](https://github.com/vsoch/codeart/tree/master/docs/examples/spack/images).
-
+You can also browse raw images [here](https://github.com/vsoch/codeart-examples/tree/master/parse_repo/spack/images).
 
 ### Generate RGB Vectors
 
@@ -111,17 +111,23 @@ code.threshold_files(thresh=100)
 # '.patch': [codeart-files:531]}
 ```
 
-And then train a word2vec model, one for each language / extension, with size of 3
+And then train a word2vec model, one for each group / extension, with size of 3
 so that we can map to the RGB colorspace.
 
 ```python
-code.train(extensions=['.py', '', '.patch'])
+code.train(groups=['.py', '', '.patch'])
 ```
 
 You can also train a single model for those extensions
 
 ```python
-code.train_all(extensions=['.py', '', '.patch'])
+code.train_all(groups=['.py', '', '.patch'])
+```
+
+Or train using all groups.
+
+```python
+code.train_all()
 ```
 
 We now have a model for each extension (and all)
@@ -137,6 +143,34 @@ Here is how to get a panda frame for a particular extension (or all)
 vectors = code.get_vectors(".py")
 vectors = code.get_vectors("all")
 ```
+
+#### Generate Interactive Colormap
+
+Let's say that we extracted the spack codebase (shown above) and then
+wanted to visualize the vectors. What do I mean? I want to see how the
+terms that are part of the embeddings model (each corresponding to
+a word/term found in a code file with some extension) correspond to each
+extension. To do this, I can extract counts and vectors:
+
+```python
+from codeart.graphics import generate_interactive_colormap
+
+vectors = code.get_vectors('all')
+counts = code.get_color_percentages(groups=list(code.codefiles.keys()), vectors=vectors)
+
+# Save if desired!
+vectors.to_csv("spack-colormap-vectors.csv")
+counts.to_csv("spack-color-percentages.csv")
+
+tmpdir = generate_interactive_colormap(vectors=vectors, counts=counts, width=1000)
+```
+
+The example interactive version is [here](https://vsoch.github.io/codeart-examples/parse_repo/web/). 
+Basically, each term in the model is represented with its color, and the color transparency
+is based on the prevalence of each term for any given extension. You can click on a
+different extension to see the colors change.
+
+![examples/codeart.png](https://vsoch.github.io/codeart-examples/parse_repo/web/)
 
 ### Example 2: Generate a Plot
 
@@ -182,21 +216,22 @@ and generate a lookup for the ".py" (python) extension.
 
 ```python
 from codeart.main import CodeBase
+from codeart.graphics import save_vectors_gradient_grid
 code = CodeBase()                      
 code.add_repo("https://github.com/spack/spack")
-code.save_vectors_gradient_grid('.py', 'spack-image-gradient.png') 
+vectors = code.get_vectors(".py")
+save_vectors_gradient_grid(vectors=vectors, outfile='spack-image-gradient.png') 
 ```
 
 An example gradient image is the following:
 
-![examples/img/spack-image-gradient.png](examples/img/spack-image-gradient.png)
+![spack-image-gradient.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/parse_repo/spack-image-gradient.png)
 
 And a much larger one (you'll need to click and zoom in):
 
-![examples/img/colors-gradient.png](examples/img/colors-gradient.png)
+![examples/img/colors-gradient.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/parse_folders/colors-gradient.png)
 
-which is generated from [this data](examples/vectors-gradients.tsv) that I created by
-building a model across all the Python code on my computer (note there are many different
+which is generated from [this data](https://github.com/vsoch/codeart-examples/blob/master/parse_folders/vectors-gradients.tsv) that I created by building a model across all the Python code on my computer (note there are many different
 file extensions in the model beyond Python!).
 
 You can of course adjust the dimensions, the row height, and the column width
@@ -204,22 +239,22 @@ and font size depending on your needs or matrix size.
 
 ### Example 5: Generate a Color Map
 
-You can [follow this notebook](https://github.com/vsoch/codeart/blob/master/examples/derive_colormap.ipynb)
+You can [follow this notebook](https://github.com/vsoch/codeart-examples/blob/master/derive_colormap/derive_colormap.ipynb)
 to see how you might generate a colormap. For example, here is an entire colormap for my Python (and associated files)
 code base, without altering opacity, but just plotting the colors (these are the colors
 that align with the color lookup grid above).
 
-![examples/img/colormap-3d.png](examples/img/colormap-3d.png)
+![colormap-3d.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-3d.png)
 
 And if we do dimensionality reduction, we can plot this in 2d:
 
-![examples/img/colormap-2d.png](examples/img/colormap-2d.png)
+![colormap-2d.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-2d.png)
 
 And finally, we can assess counts for any particular extension across
 the codebase to derive images that use transparency to show the prevalence of any given term.
 Here is for .yml and .rst (restructured syntax) files.
 
-![examples/img/colormap-yaml.png](examples/img/colormap-yaml.png)
+![colormap-yaml.png](https://raw.githubusercontent.com/vsoch/codeart-examples/master/derive_colormap/colormap-yaml.png)
 
 ### Example 6: Parse Folders by a Custom Function
 
@@ -253,12 +288,13 @@ code.add_repo(repo, group="2017")
 
 The function you provide should take the file name as the main argument.
 A more complex example (parsing GitHub repos by creation date using the GitHub
-API) is provided at [examples/parse_by_year/parse_by_year.py](examples/parse_by_year/parse_by_year.py).
+API) is provided at [parse_by_year.py](https://github.com/vsoch/codeart-examples/blob/master/parse_by_year/parse_by_year.py).
 
+## Still in Progress!
 
-Next I'd like to derive an interactive visualization to explore these results,
-and then do an analysis across my entire code base that (instead of using file extensions)
-uses time (I haven't implemented this yet).
+I'm working on a better layout for the color groupings, so more similar colors 
+are closer together. I'm also going to create a way to generate a database
+of actual code images OR colors that can then be used to generate art.
 
 Do you have a question? Or want to suggest a feature to make it better?
 Please [open an issue!](https://www.github.com/vsoch/codeart)
