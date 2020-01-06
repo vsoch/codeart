@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>CodeArt</title>
+<style>
+
+body {
+  margin: 0;
+}
+
+rect {
+  stroke: #fff;
+  stroke-width: .1px;
+}
+
+.group :hover {
+   color: yellow;
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 60px;					
+    height: 20px;					
+    padding: 2px;
+    padding-top:6px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+
+</style>
+<body>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script>
+
+d3.json("data.json", function(data) {
+
+// Define the div for the tooltip
+var div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
+var w = "100%",
+    h = data["row_height"] * data["rows"],
+    z = window.innerWidth / data["colors_per_row"]
+
+var svg = d3.select("body").append("svg")
+    .attr("width", w)
+    .attr("height", h);
+
+svg.selectAll("rect")
+    .data(data['records'])
+  .enter().append("rect")
+    .attr("x", function(d) {return d["x_center"] *16})
+    .attr("y", function(d) {return d["y_center"] *16})
+    .attr("width", z)
+    .attr("height", data["row_height"])
+    .style("fill", function(d) { return d3.rgb(d["R"], d["G"], d["B"])})
+    .on("mouseover", mouseover)
+    .on("mouseout", mouseout);
+
+function mouseout(d) {
+    div.transition()		
+       .duration(500)		
+       .style("opacity", 0);	
+}
+function mouseover(d) {
+    div.transition()
+       .duration(200)		
+       .style("opacity", .9);		
+    div.html(d.name)	
+       .style("left", (d3.event.pageX) + "px")		
+       .style("top", (d3.event.pageY - 28) + "px");	
+}
+
+function redraw(group) {
+    svg.selectAll("rect").remove()
+    if (group == "No extension"){
+        group = "";
+    }
+    key = group + "-percent"
+    console.log(key);
+
+    svg.selectAll("rect")
+      .data(data['records'])
+    .enter().append("rect")
+      .attr("x", function(d) {return d["x_center"]})
+      .attr("y", function(d) {return d["y_center"]})
+      .attr("width", z)
+      .attr("height", data["row_height"])
+      .style("fill", function(d) {return d3.rgb(d["R"], d["G"], d["B"])})
+      .style("opacity", function(d) {return d[key]})
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout);
+
+    svg.selectAll("labels")
+      .data(data["groups"])
+      .enter()
+      .append("text")
+        .attr("x", 120)
+        .attr("y", function(d,i){ return 100 + i*35}) // 100 is where the first dot appears. 25 is the distance between dots
+        .style("fill", function(d){ if (d == group) { return "black"}; return "#CCC"})
+        .text(function(d){ if (d==""){ return "No extension"; }; return d})
+        .attr("text-anchor", "left")
+        .style("cursor", "pointer")
+        .style("font", "32px sans-serif")
+        .style("font-weight", 600)
+        .style("alignment-baseline", "middle")
+        .on("click", function(d){
+            redraw(d);
+        })
+
+}
+
+// Add one dot in the legend for each name.
+svg.selectAll("labels")
+  .data(data["groups"])
+  .enter()
+  .append("text")
+    .attr("x", 120)
+    .attr("y", function(d,i){ return 100 + i*35}) // 100 is where the first dot appears. 25 is the distance between dots
+    .style("fill", "white")
+    .text(function(d){ if (d==""){ return "No extension"; }; return d})
+    .attr("text-anchor", "left")
+    .style("cursor", "pointer")
+    .style("font", "32px sans-serif")
+    .style("font-weight", 600)
+    .style("alignment-baseline", "middle")
+    .on("click", function(d){
+        redraw(d);
+     })
+
+});
+</script>

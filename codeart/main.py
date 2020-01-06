@@ -446,9 +446,11 @@ class CodeBase(object):
         elif func is not None:
             ext = func(filename)
 
-        if ext not in self.codefiles:
-            self.codefiles[ext] = CodeFiles()
-        self.codefiles[ext].files.append(filename)
+        # A return of None / False indicates that we don't add
+        if ext:
+            if ext not in self.codefiles:
+                self.codefiles[ext] = CodeFiles()
+            self.codefiles[ext].files.append(filename)
 
 
 class CodeFiles(object):
