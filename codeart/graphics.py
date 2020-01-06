@@ -36,13 +36,12 @@ def generate_colored_image(image, vectors, counts=None):
     print("Not written yet!")
 
 
-def generate_interactive_sorted_colormap(
+def generate_interactive_colormap(
     vectors, counts, color_width=20, row_height=20, outdir=None
 ):
     """Based on a set of vectors, generate an interactive colormap.
        with d3. This function should take output from get_vectors and
-       get_color_percentages. It takes longer to run since we
-       totally reshape the data.
+       get_color_percentages.
     """
     # Create a lookup for RGB values, because pandas sucks
     lookup = dict()
@@ -137,76 +136,6 @@ def generate_interactive_sorted_colormap(
 
     # Copy the static file there
     template_file = get_static("interactive-sorted-grid.html")
-    shutil.copyfile(template_file, os.path.join(outdir, "index.html"))
-    print("Interactive grid report generated in %s" % outdir)
-    return outdir
-
-
-def generate_interactive_colormap(
-    vectors, counts, color_width=20, width=1000, row_height=20, outdir=None
-):
-    """Based on a set of vectors, generate an interactive colormap.
-       with d3. This function should take output from get_vectors and
-       get_color_percentages. The xdim and ydim are generated based on
-       sorting by columns 0, 1, 2. If an output folder is not provided,
-       create one in tmp.
-    """
-    # Sort by all three columns
-    vectors = vectors.sort_values(by=[0, 1, 2])
-    groups = [x.replace("-counts", "") for x in counts.columns if "-counts" in x] + [
-        "all"
-    ]
-
-    # Rename to be RGB values
-    vectors.columns = ["R", "B", "G"]
-
-    # Assume each color needs a width of 5 pixels, how many rows do we need?
-    rows = math.ceil(vectors.shape[0] * color_width / width)
-    height = row_height * rows
-    colors_per_row = math.floor(vectors.shape[0] / rows)
-
-    print("Generating data for d3...")
-    coords = pandas.DataFrame(index=vectors.index, columns=["x_center", "y_center"])
-
-    color_index = 0
-    for row in range(rows + 1):
-
-        # If we're at the last row, likely not same length
-        if row == rows:
-            names = coords.index[color_index:].tolist()
-        else:
-            names = coords.index[color_index : color_index + colors_per_row].tolist()
-        coords.loc[names, "y_center"] = [row_height * row + 1] * len(names)
-        coords.loc[names, "x_center"] = list(
-            range(0, color_width * len(names), color_width)
-        )
-        color_index += colors_per_row
-
-    # Combine matrices to save to file
-    vectors["x_center"] = coords.loc[:, "x_center"]
-    vectors["y_center"] = coords.loc[:, "y_center"]
-    vectors["name"] = vectors.index
-
-    for column in counts.columns:
-        vectors[column] = counts.loc[:, column]
-
-    print("Saving data to file...")
-    if not outdir:
-        outdir = tempfile.mkdtemp()
-    with open(os.path.join(outdir, "data.json"), "w") as filey:
-        savedata = {
-            "records": vectors.to_dict(orient="records"),
-            "groups": groups,
-            "rows": rows,
-            "width": width,
-            "color_width": color_width,
-            "row_height": row_height,
-            "colors_per_row": colors_per_row,
-        }
-        filey.writelines(json.dumps(savedata, indent=4))
-
-    # Copy the static file there
-    template_file = get_static("interactive-grid.html")
     shutil.copyfile(template_file, os.path.join(outdir, "index.html"))
     print("Interactive grid report generated in %s" % outdir)
     return outdir

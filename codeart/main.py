@@ -181,20 +181,16 @@ class CodeBase(object):
         """train a single word2vec model for all groups/extensions. Useful to plot
            code base in same color space.
         """
-        files = self.get_combined_iters(groups)
-        print("Training model with groups %s" % "|".join(groups))
-        model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
-        self.models["all"] = model
-
-    def get_combined_iters(self, groups=None):
-        """Return a chained object with some subset of code files.
-        """
         if groups is None:
             groups = list(self.codefiles.keys())
 
         # Train model with the first extension
         files = [self.codefiles[g] for g in groups]
-        return chain(*files)
+        files = chain(*files)
+
+        print("Training model with groups %s" % "|".join(groups))
+        model = Word2Vec(files, size=size, workers=workers, min_count=min_count)
+        self.models["all"] = model
 
     ## Vectors
 
