@@ -23,7 +23,7 @@ import tempfile
 
 
 def generate_interactive_colormap(
-    vectors, counts, color_width=20, width=6000, row_height=20, outdir=None
+    vectors, counts, color_width=20, width=1000, row_height=20, outdir=None
 ):
     """Based on a set of vectors, generate an interactive colormap.
        with d3. This function should take output from get_vectors and
@@ -56,8 +56,8 @@ def generate_interactive_colormap(
             names = coords.index[color_index:].tolist()
         else:
             names = coords.index[color_index : color_index + colors_per_row].tolist()
-        coords.loc[names, "x_center"] = [row_height * row + 1] * len(names)
-        coords.loc[names, "y_center"] = list(
+        coords.loc[names, "y_center"] = [row_height * row + 1] * len(names)
+        coords.loc[names, "x_center"] = list(
             range(0, color_width * len(names), color_width)
         )
         color_index += colors_per_row
@@ -77,6 +77,7 @@ def generate_interactive_colormap(
         savedata = {
             "records": vectors.to_dict(orient="records"),
             "groups": groups,
+            "rows": rows,
             "width": width,
             "color_width": color_width,
             "row_height": row_height,
