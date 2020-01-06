@@ -42,9 +42,9 @@ var div = d3.select("body").append("div")
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
-var w = "100%",
+var w = window.innerWidth,
     h = data["row_height"] * data["rows"],
-    z = data["width"] / data["colors_per_row"]
+    z = window.innerWidth / data["colors_per_row"]
 
 var svg = d3.select("body").append("svg")
     .attr("width", w)
@@ -53,8 +53,8 @@ var svg = d3.select("body").append("svg")
 svg.selectAll("rect")
     .data(data['records'])
   .enter().append("rect")
-    .attr("x", function(d) {return d["x_center"]})
-    .attr("y", function(d) {return d["y_center"]})
+    .attr("x", function(d) {return d["x_center"] *z})
+    .attr("y", function(d) {return d["y_center"] *data["row_height"]})
     .attr("width", z)
     .attr("height", data["row_height"])
     .style("fill", function(d) { return d3.rgb(d["R"], d["G"], d["B"])})
@@ -86,8 +86,8 @@ function redraw(group) {
     svg.selectAll("rect")
       .data(data['records'])
     .enter().append("rect")
-      .attr("x", function(d) {return d["x_center"]})
-      .attr("y", function(d) {return d["y_center"]})
+      .attr("x", function(d) {return d["x_center"] *z})
+      .attr("y", function(d) {return d["y_center"] *data["row_height"]})
       .attr("width", z)
       .attr("height", data["row_height"])
       .style("fill", function(d) {return d3.rgb(d["R"], d["G"], d["B"])})

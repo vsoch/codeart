@@ -135,7 +135,7 @@ def generate_interactive_colormap(
         filey.writelines(json.dumps(savedata, indent=4))
 
     # Copy the static file there
-    template_file = get_static("interactive-sorted-grid.html")
+    template_file = get_static("interactive-grid.html")
     shutil.copyfile(template_file, os.path.join(outdir, "index.html"))
     print("Interactive grid report generated in %s" % outdir)
     return outdir
