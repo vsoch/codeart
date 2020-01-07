@@ -6,8 +6,6 @@ This Source Code Form is subject to the terms of the
 Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed
 with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
-
 """
 
 from PIL import Image
@@ -61,7 +59,7 @@ def get_avg_rgb(image):
         return (False, 0, 0, 0)
 
 
-def generate_color_lookup(png_images, remove_path=True):
+def generate_color_lookup(png_images, remove_path=False):
     """generate_color_lookup, meaning we iterate through images, get the
        average color for each, and then can use it as a pixel.
     """

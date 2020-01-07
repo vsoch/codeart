@@ -26,6 +26,50 @@ import sys
 import tempfile
 
 
+def generate_codeart(
+    template, color_lookup, top=20, sample=15, bgcolor="white", outfile="codeart.html"
+):
+    """generate codeart will take a template image and generate a web interface
+       for the same image (plotted with the images from the color lookup) 
+       using d3. It's expected to generate with paths relative to the images.
+    """
+    base = Image.open(template)
+    width, height = base.size
+    pixels = base.load()
+
+    count = 0
+    new_image = pandas.DataFrame(columns=["x", "y", "corr", "png"])
+
+    for x in range(width):
+        for y in range(height):
+            # And take only every [sample]th pixel
+            if x % sample == 0 and y % sample == 0:
+                cpixel = pixels[x, y]
+                tmp = color_lookup.copy()
+                tmp = (tmp - cpixel).abs().sum(axis=1)
+
+                # We don't take the exact match, but rather some distance from the top
+                png = random.choice(tmp.loc[tmp.index[0:top]].index.tolist())
+                new_image.loc[count] = [x, y, 0, png]
+                count += 1
+
+    new_image["x"] = [int(x) for x in (new_image["x"] / sample) * 10]
+    new_image["y"] = [int(x) for x in (new_image["y"] / sample) * 10]
+
+    with open(get_static("codeart.html"), "r") as filey:
+        template = filey.read()
+
+    # Save output to file
+    records = new_image.to_dict(orient="records")
+    data = {"image": records, "bgcolor": bgcolor}
+    template = template.replace("{{DATA}}", json.dumps(data))
+
+    with open(outfile, "w") as filey:
+        filey.writelines(template)
+
+    return new_image
+
+
 def generate_colored_image(
     image,
     vectors,

@@ -1,0 +1,45 @@
+<html>
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <meta charset="utf-8">
+    <title>Codeart</title>
+    <!-- CodeArt:
+         http://www.github.com/vsoch/codeart -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+<div id="plot"></div>
+
+<script type="text/javascript">
+
+    // Create canvas
+    svg = d3.select("#plot")
+      .append("svg")
+      .attr("height","100%")
+      .attr("width","100%")
+           
+    inputjson = {{DATA}}
+
+    // Set the background color
+    $("#body").css("background-color",inputjson.bgcolor);
+
+    var data = inputjson.image
+
+    // Create a brain path for each data element
+    svg.selectAll("#body")
+        .data(data)
+        .enter()
+        .append("svg:a")
+            .attr("xlink:href",function(d){ return d.png;})
+             .attr("target","_blank")
+        .append("svg:image")
+            .attr("xlink:href", function(d){return d.png;})
+            .attr("y",function(d){ return 1.5*d.y })
+            .attr("x",function(d){ return 1.5*d.x })
+            .attr("width", 16)
+            .attr("height", 16)
+
+</script>
+</body></html>
