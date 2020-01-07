@@ -471,6 +471,8 @@ class CodeFiles(object):
                         if len(words) < 3:
                             continue
                         yield words
+            except FileNotFoundError:
+                print("Input file was not found. Was it moved?" % input_file)
             except UnicodeDecodeError:
                 pass
 

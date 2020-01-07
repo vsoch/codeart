@@ -13,6 +13,7 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 from datetime import datetime
 import json
 import os
+import re
 import sys
 
 here = os.path.dirname(os.path.abspath(__file__))

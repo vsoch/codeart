@@ -13,27 +13,72 @@ Modified from https://github.com/Visual-mov/Colorful-Julia (MIT License)
 from PIL import Image, ImageFont, ImageDraw
 from codeart.utils import get_static, get_font, nearest_square_root
 
+from .namer import RobotNamer
 import json
 import math
 import numpy
 import operator
 import os
 import pandas
+import random
 import shutil
 import sys
 import tempfile
 
 
-def generate_colored_image(image, vectors, counts=None):
+def generate_colored_image(
+    image,
+    vectors,
+    counts=None,
+    rcol="R",
+    gcol="G",
+    bcol="B",
+    maxwidth=600,
+    maxheight=600,
+):
     """This function will take an input image and color vectors,
        and generates a version of the image mapped to the color space of
        the code. If colors are provided, generate the same image for each
-       grouping.
+       grouping. This is in spirit of the brainart library that I created
+       in graduate school https://github.com/vsoch/brainart.
     """
     # Read in the image
     if not os.path.exists(image):
         sys.exit("%s does not exist." % image)
-    print("Not written yet!")
+
+    # Color lookup
+    color_lookup = vectors[[rcol, gcol, bcol]]
+
+    # Read in the original image
+    base = Image.open(image)
+    width, height = base.size
+
+    # Resize to smaller
+    scale = min(250 / width, 250 / height)
+    base.thumbnail((width * scale, height * scale), Image.ANTIALIAS)
+    width, height = base.size
+    pixels = base.load()
+
+    print("Generating new pixels!")
+    for x in range(width):
+        for y in range(height):
+
+            print("%s %s" % (x, y), end="\r")
+            rgb_pixel = pixels[x, y]
+
+            # Create a temporary copy to calculate the closest
+            tmp = color_lookup.copy()
+            tmp = (tmp - rgb_pixel).abs().sum(axis=1)
+
+            # Find smallest distance
+            mins = tmp[tmp == tmp.min()]
+            term = random.choice(mins.index)
+
+            pixels[x, y] = tuple(color_lookup.loc[term, [rcol, gcol, bcol]].tolist())
+
+    if outfile is None:
+        outfile = "%s.png" % RobotNamer().generate()
+    base.save(outfile, "PNG")
 
 
 def generate_interactive_colormap(
