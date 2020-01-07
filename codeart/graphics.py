@@ -42,6 +42,8 @@ def generate_codeart(
 
     for x in range(width):
         for y in range(height):
+
+            print("x: %s y: %s" % (x, y), end="\r")
             # And take only every [sample]th pixel
             if x % sample == 0 and y % sample == 0:
                 cpixel = pixels[x, y]
@@ -55,6 +57,57 @@ def generate_codeart(
 
     new_image["x"] = [int(x) for x in (new_image["x"] / sample) * 10]
     new_image["y"] = [int(x) for x in (new_image["y"] / sample) * 10]
+
+    with open(get_static("codeart.html"), "r") as filey:
+        template = filey.read()
+
+    # Save output to file
+    records = new_image.to_dict(orient="records")
+    data = {"image": records, "bgcolor": bgcolor}
+    template = template.replace("{{DATA}}", json.dumps(data))
+
+    with open(outfile, "w") as filey:
+        filey.writelines(template)
+
+    return new_image
+
+
+def generate_codeart_text(
+    text,
+    color_lookup,
+    top=20,
+    bgcolor="white",
+    outfile="codert-text.html",
+    font_size=50,
+    width=600,
+    height=600,
+    coords=None,
+):
+    image = Image.new("RGBA", (width, height))
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(get_font(), font_size)
+
+    if not coords:
+        coords = (50, 20)
+
+    # Draw the text onto the canvas
+    draw.text(coords, text, font=font)
+
+    # use coordinates to draw text to data
+    pixels = image.load()
+
+    count = 0
+    new_image = pandas.DataFrame(columns=["x", "y", "corr", "png"])
+
+    for x in range(width):
+        for y in range(height):
+            print("x: %s y: %s" % (x, y), end="\r")
+            cpixel = pixels[x, y]
+            if sum(cpixel) != 0:
+                # We don't take the exact match, but rather some distance from the top
+                png = random.choice(color_lookup.index.tolist())
+                new_image.loc[count] = [x, y, 0, png]
+                count += 1
 
     with open(get_static("codeart.html"), "r") as filey:
         template = filey.read()
