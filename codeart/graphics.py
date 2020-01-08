@@ -27,12 +27,7 @@ import tempfile
 
 
 def generate_codeart(
-    template,
-    color_lookup,
-    top=20,
-    sample=15,
-    bgcolor="white",
-    outfile="codeart.html",
+    template, color_lookup, top=20, sample=15, bgcolor="white", outfile="codeart.html"
 ):
     """generate codeart will take a template image and generate a web interface
        for the same image (plotted with the images from the color lookup) 
