@@ -27,7 +27,13 @@ import tempfile
 
 
 def generate_codeart(
-    template, color_lookup, top=20, sample=15, bgcolor="white", outfile="codeart.html"
+    template,
+    color_lookup,
+    top=20,
+    sample=15,
+    bgcolor="white",
+    outfile="codeart.html",
+    quiet=False,
 ):
     """generate codeart will take a template image and generate a web interface
        for the same image (plotted with the images from the color lookup) 
@@ -43,7 +49,9 @@ def generate_codeart(
     for x in range(width):
         for y in range(height):
 
-            print("x: %s y: %s" % (x, y), end="\r")
+            if not quiet:
+                print("x: %s y: %s" % (x, y), end="\r")
+
             # And take only every [sample]th pixel
             if x % sample == 0 and y % sample == 0:
                 cpixel = pixels[x, y]
@@ -82,6 +90,7 @@ def generate_codeart_text(
     width=600,
     height=600,
     coords=None,
+    quiet=False,
 ):
     image = Image.new("RGBA", (width, height))
     draw = ImageDraw.Draw(image)
@@ -101,7 +110,8 @@ def generate_codeart_text(
 
     for x in range(width):
         for y in range(height):
-            print("x: %s y: %s" % (x, y), end="\r")
+            if not quiet:
+                print("x: %s y: %s" % (x, y), end="\r")
             cpixel = pixels[x, y]
             if sum(cpixel) != 0:
                 # We don't take the exact match, but rather some distance from the top
@@ -132,6 +142,7 @@ def generate_colored_image(
     bcol="B",
     maxwidth=600,
     maxheight=600,
+    quiet=False,
 ):
     """This function will take an input image and color vectors,
        and generates a version of the image mapped to the color space of
@@ -160,7 +171,8 @@ def generate_colored_image(
     for x in range(width):
         for y in range(height):
 
-            print("%s %s" % (x, y), end="\r")
+            if not quiet:
+                print("%s %s" % (x, y), end="\r")
             rgb_pixel = pixels[x, y]
 
             # Create a temporary copy to calculate the closest

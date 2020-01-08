@@ -29,7 +29,7 @@ def text2sentences(text, remove_non_english_chars=True):
     try:
         tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
     except:
-        nltk.download('punkt')
+        nltk.download("punkt")
         tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
 
     if remove_non_english_chars:

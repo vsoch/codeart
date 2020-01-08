@@ -29,6 +29,14 @@ def get_parser():
         action="store_true",
     )
 
+    parser.add_argument(
+        "--quiet",
+        dest="quiet",
+        help="suppress extra verbosity",
+        default=False,
+        action="store_true",
+    )
+
     description = "actions for Code Art generator"
     subparsers = parser.add_subparsers(
         help="codeart actions", title="actions", description=description, dest="command"
@@ -115,7 +123,9 @@ def main():
         color_lookup = generate_color_lookup(images)
 
         # Generate an image with text (dinosaur!)
-        generate_codeart_text(text, color_lookup, outfile="index.html")
+        generate_codeart_text(
+            text, color_lookup, outfile="index.html", quiet=args.quiet
+        )
 
     else:
         parser.print_help()
