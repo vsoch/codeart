@@ -116,7 +116,9 @@ def main():
         color_lookup = generate_color_lookup(images)
 
         # Generate an image with text (dinosaur!)
-        generate_codeart_text(text, color_lookup, outfile="index.html")
+        generate_codeart_text(
+            text, color_lookup, outfile=os.path.join(outdir, "index.html")
+        )
 
     else:
         parser.print_help()
