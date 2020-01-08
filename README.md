@@ -167,12 +167,17 @@ tmpdir = generate_interactive_colormap(vectors=vectors, counts=counts, width=100
 ```
 
 The early interactive version is [here](https://vsoch.github.io/codeart-examples/parse_repo/web/)
+
+![examples/codeart.png](examples/codeart.png)
+
 and this was updated to be better sorted, seen [here](https://vsoch.github.io/codeart-examples/parse_repo/sorted/).
+
+![examples/sorted.png](examples/sorted.png)
+
 Basically, each term in the model is represented with its color, and the color transparency
 is based on the prevalence of each term for any given extension. You can click on a
 different extension to see the colors change.
 
-![examples/codeart.png](examples/codeart.png)
 
 For the second plot (sorted) since the color RGB values are sorted based on similarity,
 you can also deduce that similar colors indicate similar terms, which indicates similar
