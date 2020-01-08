@@ -110,7 +110,8 @@ def main():
         text = args.text or text
 
         # Train a model for all extensions
-        images = code.make_art(group="all", outdir=outdir)
+        image_dir = os.path.join(outdir, "images")
+        images = code.make_art(group="all", outdir=image_dir)
         images = glob("%s/*" % os.path.join(outdir, "images"))
         color_lookup = generate_color_lookup(images)
 

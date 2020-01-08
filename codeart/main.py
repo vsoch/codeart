@@ -447,6 +447,9 @@ class CodeBase(object):
         """
         images = []
 
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+
         if files is None:
             if group == "all":
                 files = self.get_allfiles()
