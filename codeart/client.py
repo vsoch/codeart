@@ -65,7 +65,7 @@ def get_parser():
         "--text",
         dest="text",
         help="Text to write for image (defaults to folder name).",
-        type=int,
+        type=str,
         default=None,
     )
 
