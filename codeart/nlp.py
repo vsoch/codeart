@@ -14,6 +14,7 @@ from textblob import TextBlob, Word
 from nltk.corpus import stopwords
 from nltk.stem.porter import *
 from nltk.stem import *
+import nltk
 import nltk.data
 import pandas
 import gensim
@@ -25,7 +26,12 @@ def remove_nonenglish_chars(text):
 
 
 def text2sentences(text, remove_non_english_chars=True):
-    tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+    try:
+        tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+    except:
+        nltk.download('punkt')
+        tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+
     if remove_non_english_chars:
         text = remove_nonenglish_chars(text)
     for s in tokenizer.tokenize(text):
