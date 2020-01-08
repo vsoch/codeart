@@ -13,6 +13,7 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from codeart.main import CodeBase
 import codeart
 import argparse
+from glob import glob
 import sys
 import os
 import tempfile
