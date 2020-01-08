@@ -10,6 +10,7 @@ with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """
 
+from codeart.main import CodeBase
 import codeart
 import argparse
 import sys
@@ -32,11 +33,11 @@ def get_parser():
         help="codeart actions", title="actions", description=description, dest="command"
     )
 
-    extract = subparsers.add_parser(
-        "extract", help="extract images from GitHub or local file system."
+    textart = subparsers.add_parser(
+        "textart", help="extract images from GitHub or local file system."
     )
 
-    extract.add_argument(
+    textart.add_argument(
         "--github",
         dest="github",
         help="GitHub username to download repositories for.",
@@ -44,11 +45,15 @@ def get_parser():
         default=None,
     )
 
-    extract.add_argument(
-        "--root", dest="root", help="root directory to parse for files.", type=str
+    textart.add_argument(
+        "--root",
+        dest="root",
+        help="root directory to parse for files.",
+        type=str,
+        default=None,
     )
 
-    extract.add_argument(
+    textart.add_argument(
         "--outdir",
         dest="outdir",
         help="output directory to extract images (defaults to temporary directory)",
@@ -56,12 +61,12 @@ def get_parser():
         default=None,
     )
 
-    extract.add_argument(
-        "--year",
-        dest="year",
-        help="Oldest year to include files from (defaults to 2010).",
+    textart.add_argument(
+        "--text",
+        dest="text",
+        help="Text to write for image (defaults to folder name).",
         type=int,
-        default=2010,
+        default=None,
     )
 
     return parser
@@ -82,12 +87,34 @@ def main():
         sys.exit(0)
 
     # Initialize the JuliaSet
-    if args.command == "extract":
+    if args.command == "textart":
+
+        from codeart.graphics import generate_codeart_text
+        from codeart.colors import generate_color_lookup
 
         # If not output directory, create temporary
         outdir = args.outdir
         if not args.outdir:
             outdir = tempfile.mkdtemp()
+        code = CodeBase()
+
+        # GitHub repository
+        if args.github is not None:
+            code.add_repo(args.github)
+            text = os.path.basename(args.github)
+        elif args.root is not None:
+            code.add_folder(args.root)
+            text = os.path.basename(args.root)
+
+        text = args.text or text
+
+        # Train a model for all extensions
+        images = code.make_art(group="all", outdir=outdir)
+        images = glob("%s/*" % os.path.join(outdir, "images"))
+        color_lookup = generate_color_lookup(images)
+
+        # Generate an image with text (dinosaur!)
+        generate_codeart_text(text, color_lookup, outfile="index.html")
 
     else:
         parser.print_help()

@@ -167,6 +167,10 @@ class CodeBase(object):
             groups = list(self.codefiles.keys())
 
         for group in groups:
+            if group == "all":
+                self.train_all()
+                continue
+
             files = self.codefiles[group]
             if len(files.files) < thresh:
                 continue
@@ -257,12 +261,15 @@ class CodeBase(object):
 
         return vectors
 
-    def make_gallery(self, groups=None, bgcolor="white", combine=True):
+    def make_gallery(
+        self, groups=None, bgcolor="white", combine=True, outdir=None, images=None
+    ):
         """generate a small web directory with a colorful grid that
            shows one or more languages of interest. We do this for each 
            model that is present. If combine is True, we generate the "ALL"
            derived model and then plot the different languages into the 
-           same color space.
+           same color space. If images is not None, should be a listing of
+           images in a relative "images" folder.
         """
         template_file = get_static("template.html")
         d3 = get_static("js/d3.v3.js")
@@ -271,12 +278,15 @@ class CodeBase(object):
             groups = list(self.models.keys())
 
         # Create a temporary directory to write files to
-        tmpdir = tempfile.mkdtemp(prefix="code-art-")
-        image_dir = os.path.join(tmpdir, "images")
-        js_dir = os.path.join(tmpdir, "js")
+        if outdir is None:
+            outdir = tempfile.mkdtemp(prefix="code-art-")
+
+        image_dir = os.path.join(outdir, "images")
+        js_dir = os.path.join(outdir, "js")
 
         for dirname in [image_dir, js_dir]:
-            os.mkdir(dirname)
+            if not os.path.exists(dirname):
+                os.mkdir(dirname)
 
         # Copy static js file there
         shutil.copyfile(d3, os.path.join(js_dir, os.path.basename(d3)))
@@ -290,9 +300,6 @@ class CodeBase(object):
 
         for group in groups:
 
-            if group == "all":
-                continue
-
             # Read in template file
             with open(template_file, "r") as filey:
                 template = filey.read()
@@ -300,7 +307,8 @@ class CodeBase(object):
             print("Generating web output for '%s'" % group)
 
             # Generate images for each group or extension
-            images = self.make_art(group=group, outdir=image_dir, vectors=vectors)
+            if images is None:
+                images = self.make_art(group=group, outdir=image_dir, vectors=vectors)
 
             # Generate data for images
             imagedata = []
@@ -327,68 +335,171 @@ class CodeBase(object):
             template = template.replace("{{TITLE}}", "CodeArt for %s" % group)
 
             # Generate page to render
-            output_html = os.path.join(tmpdir, "codeart%s.html" % group)
+            output_html = os.path.join(outdir, "codeart%s.html" % group)
             with open(output_html, "w") as filey:
                 filey.writelines(template)
 
-        print("Finished web files are in %s" % tmpdir)
-        return tmpdir
+        print("Finished web files are in %s" % outdir)
+        return outdir
+
+    def make_tree(self, group, vectors, outdir=None, outfile="tree.html"):
+        """Given colors vectors, generate images that are used for a filesystem tree
+        """
+        if outdir is None:
+            outdir = tempfile.mkdtemp(prefix="code-art-tree-")
+        image_dir = os.path.join(outdir, "images")
+
+        # Create output image directory
+        if not os.path.exists(image_dir):
+            os.mkdir(image_dir)
+
+        if group == "all":
+            files = self.get_allfiles()
+        elif group in self.codefiles:
+            files = self.codefiles[group].files
+        else:
+            sys.exit("%s is not a known group." % group)
+
+        # Generate images for each group or extension
+        print("Generating images for tree...")
+        images = self.make_art(group=group, outdir=image_dir, vectors=vectors)
+
+        # Find the highest level shared folder (will remove from tree)
+        print("Generating tree...")
+        level = min([x.count("/") for x in files])
+        root = "/".join(files[0].split("/")[:level])
+
+        # Create a list of nodes, count holds an id for nodes
+        nodes = {}
+        lookup = {}
+        count = 1
+        max_depth = 0
+
+        for filename in files:
+            relative_path = filename.replace(root, "")
+            path_components = relative_path.split(os.sep)
+            for p in range(len(path_components)):
+                path_component = path_components[p]
+                fullpath = os.sep.join(path_components[0 : p + 1])
+
+                # Have we created the node yet?
+                if fullpath not in lookup:
+                    lookup[fullpath] = count
+                    png = "%s.png" % os.path.join(
+                        "images", filename.replace(os.sep, "-").strip("-")
+                    )
+                    node = {
+                        "id": count,
+                        "name": path_component,
+                        "path": fullpath,
+                        "png": png,
+                        "level": p,
+                        "children": [],
+                    }
+                    count += 1
+                    # Did we find a deeper level?
+                    if p > max_depth:
+                        max_depth = p
+                    # Does the node have a parent?
+                    if p == 0:  # base node, no parent
+                        parent_id = 0
+                    else:  # look up the parent id
+                        parent_path = os.sep.join(path_components[0:p])
+                        parent_id = lookup[parent_path]
+                    node["parent"] = parent_id
+                    nodes[node["id"]] = node
+
+        # Now make the graph, we simply append children to their parents
+        seen = []
+        graph = []
+        iters = list(range(max_depth + 1))  # 0,1,2,3...
+        iters.reverse()  # ...3,2,1,0
+        iters.pop()  # remove 0
+        for level in iters:
+            children = {x: y for x, y in nodes.items() if y["level"] == level}
+            seen = seen + [y["id"] for x, y in children.items()]
+            nodes = {x: y for x, y in nodes.items() if y["id"] not in seen}
+            for node_id, child_node in children.items():
+                if node_id == 0:  # base node
+                    graph[node_id] = child_node
+                else:
+                    parent_id = child_node["parent"]
+                    nodes[parent_id]["children"].append(child_node)
+
+        # Now add the parents to graph, with name as main lookup
+        for parent, parent_info in nodes.items():
+            graph.append(parent_info)
+        graph = {"name": "base", "children": graph}
+        result = {"graph": graph, "lookup": lookup, "depth": max_depth + 1}
+
+        # Get the template
+        template = get_static("tree.html")
+        data_file = os.path.join(outdir, "data.json")
+        with open(data_file, "w") as filey:
+            filey.writelines(json.dumps(result, indent=4))
+
+        shutil.copyfile(template, os.path.join(outdir, outfile))
+        return result
 
     def make_art(self, group, outdir, vectors=None, files=None):
         """based on an extension, create a set of vectors in the RGB space,
            and then write images for them to some output directory
         """
         images = []
-        if group in self.codefiles:
 
-            # We can take a custom list of files, or the iterator
-            files = files or self.codefiles.get(group, [])
+        if files is None:
+            if group == "all":
+                files = self.get_allfiles()
+            elif group in self.codefiles:
+                files = self.codefiles[group].files
+            else:
+                sys.exit("%s is not found in codefiles." % group)
 
-            if hasattr(files, "files"):
-                files = files.files
+        if hasattr(files, "files"):
+            files = files.files
 
-            if vectors is None:
-                vectors = self.get_vectors(group)
+        if vectors is None:
+            vectors = self.get_vectors(group)
 
-            # Parse through files
-            for filename in files:
-                with open(filename, "rb") as fp:
-                    content = fp.read().decode("utf8", "ignore")
+        # Parse through files
+        for filename in files:
+            with open(filename, "rb") as fp:
+                content = fp.read().decode("utf8", "ignore")
 
-                # get rid of windows newline, replace tab with 4 spaces, lines
-                lines = content.replace("\r", "").replace("\t", "    ").split("\n")
+            # get rid of windows newline, replace tab with 4 spaces, lines
+            lines = content.replace("\r", "").replace("\t", "    ").split("\n")
 
-                # The max width is the final width
-                width = max([len(line) for line in lines])
-                height = len(lines)
+            # The max width is the final width
+            width = max([len(line) for line in lines])
+            height = len(lines)
 
-                if width == 0 or height == 0:
-                    continue
+            if width == 0 or height == 0:
+                continue
 
-                # Create image of this size
-                image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
-                pixels = image.load()
+            # Create image of this size
+            image = Image.new("RGBA", (width, height), (255, 0, 0, 0))
+            pixels = image.load()
 
-                for l, line in enumerate(lines):
-                    padded = line + (width - len(line)) * " "
+            for l, line in enumerate(lines):
+                padded = line + (width - len(line)) * " "
 
-                    # Find the coordinates for each word
-                    for word in sentence2words(padded):
+                # Find the coordinates for each word
+                for word in sentence2words(padded):
 
-                        if word not in vectors.index:
-                            continue
+                    if word not in vectors.index:
+                        continue
 
-                        rgb = vectors.loc[word].tolist()
-                        for match in re.finditer(word, padded):
-                            for y in range(match.start(), match.end()):
-                                pixels[y, l] = (*rgb, 255)
+                    rgb = vectors.loc[word].tolist()
+                    for match in re.finditer(word, padded):
+                        for y in range(match.start(), match.end()):
+                            pixels[y, l] = (*rgb, 255)
 
-                # Save output file
-                outfile = "%s.png" % os.path.join(
-                    outdir, filename.replace(os.path.sep, "-").strip("-")
-                )
-                image.save(outfile)
-                images.append(outfile)
+            # Save output file
+            outfile = "%s.png" % os.path.join(
+                outdir, filename.replace(os.path.sep, "-").strip("-")
+            )
+            image.save(outfile)
+            images.append(outfile)
 
         return images
 

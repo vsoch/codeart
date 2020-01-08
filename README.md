@@ -76,11 +76,12 @@ Finished web files are in /tmp/code-art-xp73v5ji
 
 And then the example files for each of:
 
- - [python](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.py.html)
- - [patch](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.patch.html)
- - [empty space](https://vsoch.github.io/codeart-examples/parse_repo/spack/codeart.html)
+ - [all](https://vsoch.github.io/codeart-examples/parse_repo/codeartall.html)
+ - [python](https://vsoch.github.io/codeart-examples/parse_repo/codeart.py.html)
+ - [patch](https://vsoch.github.io/codeart-examples/parse_repo/codeart.patch.html)
+ - [empty space](https://vsoch.github.io/codeart-examples/parse_repo/codeart.html)
 
-You can also browse raw images [here](https://github.com/vsoch/codeart-examples/tree/master/parse_repo/spack/images).
+You can also browse raw images [here](https://github.com/vsoch/codeart-examples/tree/master/parse_repo/images).
 
 ### Generate RGB Vectors
 
@@ -165,12 +166,17 @@ counts.to_csv("spack-color-percentages.csv")
 tmpdir = generate_interactive_colormap(vectors=vectors, counts=counts, width=1000)
 ```
 
-The example interactive version is [here](https://vsoch.github.io/codeart-examples/parse_repo/web/). 
+The early interactive version is [here](https://vsoch.github.io/codeart-examples/parse_repo/web/)
+and this was updated to be better sorted, seen [here](https://vsoch.github.io/codeart-examples/parse_repo/sorted/).
 Basically, each term in the model is represented with its color, and the color transparency
 is based on the prevalence of each term for any given extension. You can click on a
 different extension to see the colors change.
 
-![examples/codeart.png](https://vsoch.github.io/codeart-examples/parse_repo/web/)
+![examples/codeart.png](examples/codeart.png)
+
+For the second plot (sorted) since the color RGB values are sorted based on similarity,
+you can also deduce that similar colors indicate similar terms, which indicates similar
+context in the code files.
 
 ### Example 2: Generate a Plot
 
@@ -298,11 +304,77 @@ The function you provide should take the file name as the main argument.
 A more complex example (parsing GitHub repos by creation date using the GitHub
 API) is provided at [parse_by_year.py](https://github.com/vsoch/codeart-examples/blob/master/parse_by_year/parse_by_year.py).
 
-## Still in Progress!
+## Example 7: Generate CodeArt Text
 
-I'm working on a better layout for the color groupings, so more similar colors 
-are closer together. I'm also going to create a way to generate a database
-of actual code images OR colors that can then be used to generate art.
+A simple use case is to, given a repository or folder, generate a text image using it.
+
+```python
+from codeart.graphics import generate_codeart_text
+from codeart.colors import generate_color_lookup
+
+# either works here
+code.add_repo("https://github.com/vsoch/codeart")
+code.add_folder("/path/to/folder")
+
+images = code.make_art(group="all", outdir=os.getcwd())
+images = glob("%s/*" % os.path.join(os.getcwd(), "images"))
+color_lookup = generate_color_lookup(images)
+
+# Generate an image with text (dinosaur!)
+generate_codeart_text("dinosaur", color_lookup, outfile="index.html")
+```
+
+A similar function (not as well used / developed) is to generate a mapping
+to an image.
+
+```python
+from codeart.graphics import generate_codeart
+generate_codeart('sunset.jpg', color_lookup, sample=10, top=100, outfile="index.html")
+```
+
+For more details on text generation, see the
+
+
+## Example 8: Basic Client Usage
+
+For the text generation, I've created a simple client that will drive the interaction:
+
+```bash
+> codeart --help
+usage: codeart [-h] [--version] {textart} ...
+
+Code Art Generator
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --version   print the version and exit.
+
+actions:
+  actions for Code Art generator
+
+  {textart}   codeart actions
+    textart   extract images from GitHub or local file system.
+```
+
+Currently the only simple command is to generate a code art text graphic. 
+Be aware that this generates one image per code file, and should be done
+for small code bases, or larger ones with caution.
+
+```bash
+codeart textart --help
+usage: codeart textart [-h] [--github GITHUB] [--root ROOT] [--outdir OUTDIR]
+                       [--text TEXT]
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --github GITHUB  GitHub username to download repositories for.
+  --root ROOT      root directory to parse for files.
+  --outdir OUTDIR  output directory to extract images (defaults to temporary
+                   directory)
+```
+
+For an example, you can see the .github actions workflow in [codeart-examples](https://github.com/vsoch/codeart-examples).
+
 
 Do you have a question? Or want to suggest a feature to make it better?
 Please [open an issue!](https://www.github.com/vsoch/codeart)

@@ -95,5 +95,5 @@ if __name__ == "__main__":
             "Operating System :: Unix",
             "Programming Language :: Python :: 3.7",
         ],
-        entry_points={"console_scripts": ["juliart=juliart.client:main"]},
+        entry_points={"console_scripts": ["codeart=codeart.client:main"]},
     )
