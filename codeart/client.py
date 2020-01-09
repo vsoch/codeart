@@ -16,6 +16,7 @@ import argparse
 from glob import glob
 import sys
 import os
+import re
 import tempfile
 
 
@@ -112,8 +113,10 @@ def main():
         # Train a model for all extensions
         image_dir = os.path.join(outdir, "images")
         images = code.make_art(group="all", outdir=image_dir)
-        images = glob("%s/*" % os.path.join(outdir, "images"))
         color_lookup = generate_color_lookup(images)
+
+        # Color lookup index must be relative to output folder
+        color_lookup.index = [re.findall('image.+', i)[0] for i in color_lookup.index.tolist()]
 
         # Generate an image with text (dinosaur!)
         generate_codeart_text(

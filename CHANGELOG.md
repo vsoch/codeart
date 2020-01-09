@@ -7,6 +7,7 @@ and **Merged pull requests**.
 The versions coincide with releases on pypi.
 
 ## [0.0.x](https://github.com/vsoch/codeart/tree/master) (0.0.x)
+ - images must be relative to text for text art (0.0.13)
  - verison bump for http resource (0.0.12)
  - finished basic client and dummy functions (0.0.11)
  - dummy release with base functions without client (0.0.1)
