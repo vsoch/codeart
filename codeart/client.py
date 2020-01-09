@@ -116,7 +116,9 @@ def main():
         color_lookup = generate_color_lookup(images)
 
         # Color lookup index must be relative to output folder
-        color_lookup.index = [re.findall('image.+', i)[0] for i in color_lookup.index.tolist()]
+        color_lookup.index = [
+            re.findall("image.+", i)[0] for i in color_lookup.index.tolist()
+        ]
 
         # Generate an image with text (dinosaur!)
         generate_codeart_text(
